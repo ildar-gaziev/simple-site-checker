@@ -1,6 +1,7 @@
 import urllib.request
 from urllib.parse import urljoin
 from html.parser import HTMLParser
+from ..auth import load_cookies
 
 
 class LinkParser(HTMLParser):
@@ -17,19 +18,29 @@ class LinkParser(HTMLParser):
                     self.links.append(url)
 
 
-def check_url(url):
+def check_url(url, headers=None):
+    req = urllib.request.Request(url, headers=headers or {})
     try:
-        with urllib.request.urlopen(url, timeout=5) as response:
+        with urllib.request.urlopen(req, timeout=5) as response:
             return response.getcode()
     except Exception as e:
         print(f'Error checking {url}: {e}')
         return None
 
 
-def validate_links(page_url):
+def validate_links(page_url, cookie_file=None):
     results = []
+
+    headers = {}
+    if cookie_file:
+        cookie_data = load_cookies(cookie_file)
+        headers = {'Cookie': cookie_data}
+    else:
+        headers = {}
+
     try:
-        with urllib.request.urlopen(page_url) as response:
+        req = urllib.request.Request(page_url, headers=headers or {})
+        with urllib.request.urlopen(req) as response:
             html_content = response.read().decode()
     except Exception as e:
         print(f'Error loading page {page_url}: {e}')
@@ -40,7 +51,7 @@ def validate_links(page_url):
 
     valid_codes = range(200, 400)
     for link in set(parser.links):
-        code = check_url(link)
+        code = check_url(link, headers=headers)
         if code in valid_codes:
             print(f'OK ({code}): {link}')
         elif code:
