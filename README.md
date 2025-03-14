@@ -35,3 +35,15 @@ ssc -links -url https://www.example.com
 ```bash
 ssc -links -url https://www.example.com -res results.csv
 ```
+
+### Optional: set cookies
+
+```bash
+ssc -links -url https://www.example.com -auth cookies.txt
+```
+
+#### cookies.txt
+
+```txt
+name=value
+```
