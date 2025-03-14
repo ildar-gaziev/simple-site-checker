@@ -15,9 +15,18 @@ Simple command-line utility for checking links on a web page.
 ### Clone the repository
 
 ```bash
-git clone https://github.com/yourusername/simple-site-checker.git
+git clone https://github.com/ildar-gaziev/simple-site-checker.git
+```
+
+```bash
 cd simple-site-checker
+```
+
+```bash
 pip install -e .
+```
+
+```bash
 ssc -links -url https://www.example.com
 ```
 
