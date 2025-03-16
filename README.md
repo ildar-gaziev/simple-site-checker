@@ -1,5 +1,7 @@
 # Simple Site Checker
 
+## (webpages-validator-ssc)
+
 Simple command-line utility for checking links on a web page.
 
 ---
@@ -15,7 +17,7 @@ Simple command-line utility for checking links on a web page.
 ### Install via PIP
 
 ```bash
-pip install simple-site-checker
+pip install webpages-validator-ssc
 ```
 
 ```bash
