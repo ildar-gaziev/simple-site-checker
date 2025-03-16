@@ -12,18 +12,10 @@ Simple command-line utility for checking links on a web page.
 
 ## Installation
 
-### Clone the repository
+### Install via PIP
 
 ```bash
-git clone https://github.com/ildar-gaziev/simple-site-checker.git
-```
-
-```bash
-cd simple-site-checker
-```
-
-```bash
-pip install -e .
+pip install simple-site-checker
 ```
 
 ```bash
