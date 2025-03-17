@@ -23,8 +23,13 @@ def check_url(url, headers=None):
     try:
         with urllib.request.urlopen(req, timeout=5) as response:
             return response.getcode()
+    except urllib.error.HTTPError as e:
+        return e.code
+    except urllib.error.URLError as e:
+        print(f'URL error checking {url}: {e.reason}')
+        return None
     except Exception as e:
-        print(f'Error checking {url}: {e}')
+        print(f'Unexpected error checking {url}: {e}')
         return None
 
 
