@@ -11,6 +11,10 @@ readme = "README.md"
 requires-python = ">=3.6"
 license = { text = "MIT" }
 
+[tool.setuptools.packages.find]
+include = ["ssc*"]
+exclude = ["tests*"]
+
 [project.urls]
 Homepage = "https://github.com/ildar-gaziev/simple-site-checker"
 repository = "https://github.com/ildar-gaziev/simple-site-checker"
