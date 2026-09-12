@@ -1,8 +1,15 @@
 import urllib.request
+import ssl
 from urllib.parse import urljoin
 from html.parser import HTMLParser
 from ..auth import load_cookies
 
+
+def get_unverified_context():
+    ctx = ssl.create_default_context()
+    ctx.check_hostname = False
+    ctx.verify_mode = ssl.CERT_NONE
+    return ctx
 
 class LinkParser(HTMLParser):
     def __init__(self, base_url):
@@ -21,7 +28,7 @@ class LinkParser(HTMLParser):
 def check_url(url, headers=None):
     req = urllib.request.Request(url, headers=headers or {})
     try:
-        with urllib.request.urlopen(req, timeout=5) as response:
+        with urllib.request.urlopen(req, timeout=5, context=get_unverified_context()) as response:
             return response.getcode()
     except Exception as e:
         print(f'Error checking {url}: {e}')
@@ -40,7 +47,7 @@ def validate_links(page_url, cookie_file=None):
 
     try:
         req = urllib.request.Request(page_url, headers=headers or {})
-        with urllib.request.urlopen(req) as response:
+        with urllib.request.urlopen(req, context=get_unverified_context()) as response:
             html_content = response.read().decode()
     except Exception as e:
         print(f'Error loading page {page_url}: {e}')
