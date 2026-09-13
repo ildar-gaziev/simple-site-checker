@@ -4,6 +4,12 @@ from ssc.auth import load_cookies
 from ssc.util import get_response
 
 
+def get_unverified_context():
+    ctx = ssl.create_default_context()
+    ctx.check_hostname = False
+    ctx.verify_mode = ssl.CERT_NONE
+    return ctx
+
 class LinkParser(HTMLParser):
     def __init__(self, base_url):
         super().__init__()
