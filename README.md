@@ -8,7 +8,14 @@ Simple command-line utility for checking links on a web page.
 
 ## Overview
 
-`simple-site-checker` (`ssc`) is a lightweight Python CLI tool designed to quickly verify the HTTP status codes of all hyperlinks on a given web page. It uses only standard Python libraries and has no external dependencies.
+`simple-site-checker` (`ssc`) is a lightweight, ultra-fast Python CLI tool designed to quickly verify the HTTP status codes of all hyperlinks on a given web page. It uses only standard Python libraries and has no external dependencies.
+
+**Features:**
+- **Lightning Fast:** Uses multi-threading for concurrent link validation.
+- **Bandwidth Friendly:** Utilizes `HEAD` requests for checking link status.
+- **Dependency-Free:** Built entirely with Python's standard library.
+- **Session Support:** Pass cookies easily via file or string for checking authenticated pages.
+- **Exportable:** Optionally export results to a CSV file.
 
 ---
 
