@@ -4,11 +4,7 @@ from ssc.auth import load_cookies
 from ssc.util import get_response
 
 
-def get_unverified_context():
-    ctx = ssl.create_default_context()
-    ctx.check_hostname = False
-    ctx.verify_mode = ssl.CERT_NONE
-    return ctx
+
 
 class LinkParser(HTMLParser):
     def __init__(self, base_url):
@@ -33,7 +29,7 @@ def validate_links(page_url, auth_input=None):
 
     results = []
     res = get_response(page_url, headers=headers)
-    if hasattr(res, 'html'):
+    if 'html' in res:
         html_content = res.get('html')
     else:
         print(f"Failed to load the page: {page_url}")
