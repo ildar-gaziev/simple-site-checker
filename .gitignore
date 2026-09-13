@@ -4,3 +4,4 @@ simple_site_checker.egg-info
 my.txt
 agents.md
 tasks.md
+local_tests.py
