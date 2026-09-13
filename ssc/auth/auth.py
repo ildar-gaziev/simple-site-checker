@@ -1,4 +1,7 @@
-def load_cookies(cookie_file):
-    with open(cookie_file, 'r', encoding='utf-8') as f:
-        cookie_data = f.read().strip()
-    return cookie_data
+import os
+
+def load_cookies(auth_input):
+    if os.path.isfile(auth_input):
+        with open(auth_input, 'r', encoding='utf-8') as f:
+            return f.read().strip()
+    return auth_input
