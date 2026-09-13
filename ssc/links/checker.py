@@ -1,7 +1,7 @@
-import urllib.request
 from urllib.parse import urljoin
 from html.parser import HTMLParser
-from ..auth import load_cookies
+from ssc.auth import load_cookies
+from ssc.util import get_response
 
 
 class LinkParser(HTMLParser):
@@ -18,48 +18,29 @@ class LinkParser(HTMLParser):
                     self.links.append(url)
 
 
-def check_url(url, headers=None):
-    req = urllib.request.Request(url, headers=headers or {})
-    try:
-        with urllib.request.urlopen(req, timeout=5) as response:
-            return response.getcode()
-    except urllib.error.HTTPError as e:
-        return e.code
-    except urllib.error.URLError as e:
-        print(f'URL error checking {url}: {e.reason}')
-        return None
-    except Exception as e:
-        print(f'Unexpected error checking {url}: {e}')
-        return None
+def code_in_valid_range(code):
+    return code is not None and 200 <= code < 400
 
 
-def validate_links(page_url, cookie_file=None):
+def validate_links(page_url, auth_input=None):
+    headers = {'Cookie': load_cookies(auth_input)} if auth_input else {}
+
     results = []
-
-    headers = {}
-    if cookie_file:
-        cookie_data = load_cookies(cookie_file)
-        headers = {'Cookie': cookie_data}
+    res = get_response(page_url, headers=headers)
+    if hasattr(res, 'html'):
+        html_content = res.get('html')
     else:
-        headers = {}
-
-    try:
-        req = urllib.request.Request(page_url, headers=headers or {})
-        with urllib.request.urlopen(req) as response:
-            html_content = response.read().decode()
-    except Exception as e:
-        print(f'Error loading page {page_url}: {e}')
+        print(f"Failed to load the page: {page_url}")
         return results
 
     parser = LinkParser(page_url)
     parser.feed(html_content)
 
-    valid_codes = range(200, 400)
     for link in set(parser.links):
-        code = check_url(link, headers=headers)
-        if code in valid_codes:
+        code = get_response(link, headers=headers).get('code')
+        if code_in_valid_range(code):
             print(f'OK ({code}): {link}')
-        elif code:
+        else:
             print(f'BAD ({code}): {link}')
         results.append((link, code))
 
