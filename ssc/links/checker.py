@@ -26,14 +26,28 @@ class LinkParser(HTMLParser):
                     self.links.append(url_no_fragment)
 
 
+STRICT_DOMAINS = [
+    'linkedin.com',
+    'twitter.com',
+    'x.com',
+    'instagram.com',
+    'facebook.com',
+    'tiktok.com'
+]
+
+
 def get_link_status(code, url):
     """
-    Evaluates the HTTP status code and returns a status string: 'OK', 'RESTRICTED', or 'BAD'.
+    Evaluates the HTTP status code and returns a status string: 'OK', 'RESTRICTED', 'SKIPPED', or 'BAD'.
     - OK: 200-399 range, plus special cases like LinkedIn 999.
     - RESTRICTED: 403 (Forbidden), 429 (Too Many Requests), 503 (Service Unavailable) 
       which usually imply the link exists but blocks our bot.
+    - SKIPPED: When the link was skipped by the user flag.
     - BAD: Everything else (e.g. 404, 500, None).
     """
+    if code == 'SKIPPED':
+        return 'SKIPPED'
+        
     if code is None:
         return 'BAD'
         
@@ -50,13 +64,21 @@ def get_link_status(code, url):
     return 'BAD'
 
 
-def validate_links(page_url, auth_input=None):
+def is_strict_domain(link):
+    try:
+        netloc = urlsplit(link).netloc.lower()
+        return any(netloc == d or netloc.endswith('.' + d) for d in STRICT_DOMAINS)
+    except Exception:
+        return False
+
+def validate_links(page_url, auth_input=None, skip_strict=False):
     """
     Fetches the given page, extracts all unique links, and concurrently validates them.
     
     Args:
         page_url (str): The URL of the page to parse.
         auth_input (str): The path to a cookie file or a raw cookie string.
+        skip_strict (bool): Skip validation for strict anti-bot domains.
         
     Returns:
         list: A list of tuples containing (link, status_code).
@@ -75,7 +97,11 @@ def validate_links(page_url, auth_input=None):
     parser.feed(html_content)
 
     def check_link(link):
-        code = get_response(link, headers=headers, method='HEAD').get('code')
+        if skip_strict and is_strict_domain(link):
+            code = 'SKIPPED'
+        else:
+            code = get_response(link, headers=headers, method='HEAD').get('code')
+            
         status = get_link_status(code, link)
         print(f'{status} ({code}): {link}')
         return (link, code)
@@ -87,7 +113,7 @@ def validate_links(page_url, auth_input=None):
             results.append(future.result())
 
     # Print statistics
-    stats = {'OK': 0, 'RESTRICTED': 0, 'BAD': 0}
+    stats = {'OK': 0, 'RESTRICTED': 0, 'SKIPPED': 0, 'BAD': 0}
     for link, code in results:
         status = get_link_status(code, link)
         stats[status] += 1
@@ -96,6 +122,7 @@ def validate_links(page_url, auth_input=None):
     print(f"Total links checked: {len(results)}")
     print(f"OK: {stats['OK']}")
     print(f"RESTRICTED: {stats['RESTRICTED']}")
+    print(f"SKIPPED: {stats['SKIPPED']}")
     print(f"BAD: {stats['BAD']}")
     print("-----------------------------\n")
 
