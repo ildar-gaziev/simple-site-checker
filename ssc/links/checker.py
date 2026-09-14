@@ -26,11 +26,23 @@ class LinkParser(HTMLParser):
                     self.links.append(url_no_fragment)
 
 
-def code_in_valid_range(code):
+def code_in_valid_range(code, url):
     """
     Checks if the HTTP status code indicates a successful response (200-399).
+    Also handles special cases where anti-bot systems return non-standard codes 
+    (e.g., LinkedIn returning 999) which still mean the link is alive.
     """
-    return code is not None and 200 <= code < 400
+    if code is None:
+        return False
+        
+    if 200 <= code < 400:
+        return True
+        
+    # Handle LinkedIn's specific 999 Request Denied anti-bot code
+    if code == 999 and 'linkedin.com' in url:
+        return True
+        
+    return False
 
 
 def validate_links(page_url, auth_input=None):
@@ -59,7 +71,7 @@ def validate_links(page_url, auth_input=None):
 
     def check_link(link):
         code = get_response(link, headers=headers, method='HEAD').get('code')
-        if code_in_valid_range(code):
+        if code_in_valid_range(code, link):
             print(f'OK ({code}): {link}')
         else:
             print(f'BAD ({code}): {link}')
