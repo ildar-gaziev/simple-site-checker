@@ -86,4 +86,17 @@ def validate_links(page_url, auth_input=None):
         for future in concurrent.futures.as_completed(futures):
             results.append(future.result())
 
+    # Print statistics
+    stats = {'OK': 0, 'RESTRICTED': 0, 'BAD': 0}
+    for link, code in results:
+        status = get_link_status(code, link)
+        stats[status] += 1
+        
+    print("\n--- Validation Statistics ---")
+    print(f"Total links checked: {len(results)}")
+    print(f"OK: {stats['OK']}")
+    print(f"RESTRICTED: {stats['RESTRICTED']}")
+    print(f"BAD: {stats['BAD']}")
+    print("-----------------------------\n")
+
     return results
