@@ -37,6 +37,14 @@ ssc -links -url https://www.example.com
 ssc -links -url https://www.example.com -res results.csv
 ```
 
+### Optional: Skip Strict Anti-bot Services
+
+If you're testing pages with many social media links (LinkedIn, Twitter/X, Instagram, etc.), you might get blocked or rate-limited. Use the `-skip-strict` flag to skip validation for these domains. They will be marked as `SKIPPED` in the stats without making HTTP requests.
+
+```bash
+ssc -links -url https://www.example.com -skip-strict
+```
+
 ### Optional: set cookies
 
 You can pass a cookie file:

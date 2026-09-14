@@ -10,12 +10,14 @@ def main():
     parser.add_argument('-url', required=True,
                         help='URL of the webpage to check')
     parser.add_argument('-auth', help='Path to cookie file or raw cookie string for authentication')
+    parser.add_argument('-skip-strict', action='store_true',
+                        help='Skip validation for strict anti-bot domains (e.g. LinkedIn, Twitter)')
     parser.add_argument('-res', help='Save results to CSV file')
 
     args = parser.parse_args()
 
     if args.links:
-        results = validate_links(args.url, auth_input=args.auth)
+        results = validate_links(args.url, auth_input=args.auth, skip_strict=args.skip_strict)
 
         if args.res:
             save_to_csv(results, args.res)
