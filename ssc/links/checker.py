@@ -64,6 +64,13 @@ def get_link_status(code, url):
     return 'BAD'
 
 
+def is_strict_domain(link):
+    try:
+        netloc = urlsplit(link).netloc.lower()
+        return any(netloc == d or netloc.endswith('.' + d) for d in STRICT_DOMAINS)
+    except Exception:
+        return False
+
 def validate_links(page_url, auth_input=None, skip_strict=False):
     """
     Fetches the given page, extracts all unique links, and concurrently validates them.
@@ -90,7 +97,7 @@ def validate_links(page_url, auth_input=None, skip_strict=False):
     parser.feed(html_content)
 
     def check_link(link):
-        if skip_strict and any(domain in link for domain in STRICT_DOMAINS):
+        if skip_strict and is_strict_domain(link):
             code = 'SKIPPED'
         else:
             code = get_response(link, headers=headers, method='HEAD').get('code')
