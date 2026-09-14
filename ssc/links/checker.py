@@ -26,11 +26,28 @@ class LinkParser(HTMLParser):
                     self.links.append(url_no_fragment)
 
 
-def code_in_valid_range(code):
+def get_link_status(code, url):
     """
-    Checks if the HTTP status code indicates a successful response (200-399).
+    Evaluates the HTTP status code and returns a status string: 'OK', 'RESTRICTED', or 'BAD'.
+    - OK: 200-399 range, plus special cases like LinkedIn 999.
+    - RESTRICTED: 403 (Forbidden), 429 (Too Many Requests), 503 (Service Unavailable) 
+      which usually imply the link exists but blocks our bot.
+    - BAD: Everything else (e.g. 404, 500, None).
     """
-    return code is not None and 200 <= code < 400
+    if code is None:
+        return 'BAD'
+        
+    if 200 <= code < 400:
+        return 'OK'
+        
+    if code in (403, 429, 503):
+        return 'RESTRICTED'
+        
+    # Handle LinkedIn's specific 999 Request Denied anti-bot code
+    if code == 999 and 'linkedin.com' in url:
+        return 'OK'
+        
+    return 'BAD'
 
 
 def validate_links(page_url, auth_input=None):
@@ -59,10 +76,8 @@ def validate_links(page_url, auth_input=None):
 
     def check_link(link):
         code = get_response(link, headers=headers, method='HEAD').get('code')
-        if code_in_valid_range(code):
-            print(f'OK ({code}): {link}')
-        else:
-            print(f'BAD ({code}): {link}')
+        status = get_link_status(code, link)
+        print(f'{status} ({code}): {link}')
         return (link, code)
 
     unique_links = set(parser.links)
