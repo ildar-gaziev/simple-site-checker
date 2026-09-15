@@ -7,6 +7,8 @@ def main():
     parser = argparse.ArgumentParser(description='Simple Site Checker')
     parser.add_argument('-links', action='store_true',
                         help='Check all links on the page')
+    parser.add_argument('-src', action='store_true',
+                        help='Check availability of loaded resources (images, scripts, styles)')
     parser.add_argument('-url', required=True,
                         help='URL of the webpage to check')
     parser.add_argument('-auth', help='Path to cookie file or raw cookie string for authentication')
@@ -16,8 +18,8 @@ def main():
 
     args = parser.parse_args()
 
-    if args.links:
-        results = validate_links(args.url, auth_input=args.auth, skip_strict=args.skip_strict)
+    if args.links or args.src:
+        results = validate_links(args.url, auth_input=args.auth, skip_strict=args.skip_strict, check_links=args.links, check_src=args.src)
 
         if args.res:
             save_to_csv(results, args.res)
