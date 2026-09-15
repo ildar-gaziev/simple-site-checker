@@ -7,23 +7,38 @@ from ssc.util import get_response
 
 class LinkParser(HTMLParser):
     """
-    Parses HTML content to extract all valid anchor tag links.
+    Parses HTML content to extract all valid anchor tag links and/or resources.
     """
-    def __init__(self, base_url):
+    def __init__(self, base_url, check_links=True, check_src=False):
         super().__init__()
         self.links = []
         self.base_url = base_url
+        self.check_links = check_links
+        self.check_src = check_src
+
+    def add_link(self, url_value):
+        if url_value.startswith(('mailto:', 'tel:', 'javascript:', 'data:')):
+            return
+        url = urljoin(self.base_url, url_value)
+        parsed = urlsplit(url)
+        url_no_fragment = urlunsplit((parsed.scheme, parsed.netloc, parsed.path, parsed.query, ''))
+        self.links.append(url_no_fragment)
 
     def handle_starttag(self, tag, attrs):
-        if tag == 'a':
+        if self.check_links and tag == 'a':
             for attr, value in attrs:
                 if attr == 'href':
-                    if value.startswith(('mailto:', 'tel:', 'javascript:', 'data:')):
-                        continue
-                    url = urljoin(self.base_url, value)
-                    parsed = urlsplit(url)
-                    url_no_fragment = urlunsplit((parsed.scheme, parsed.netloc, parsed.path, parsed.query, ''))
-                    self.links.append(url_no_fragment)
+                    self.add_link(value)
+                    
+        if self.check_src:
+            if tag in ('img', 'script', 'source', 'iframe', 'track'):
+                for attr, value in attrs:
+                    if attr == 'src':
+                        self.add_link(value)
+            elif tag == 'link':
+                for attr, value in attrs:
+                    if attr == 'href':
+                        self.add_link(value)
 
 
 STRICT_DOMAINS = [
@@ -71,14 +86,16 @@ def is_strict_domain(link):
     except Exception:
         return False
 
-def validate_links(page_url, auth_input=None, skip_strict=False):
+def validate_links(page_url, auth_input=None, skip_strict=False, check_links=True, check_src=False):
     """
-    Fetches the given page, extracts all unique links, and concurrently validates them.
+    Fetches the given page, extracts all unique links/resources, and concurrently validates them.
     
     Args:
         page_url (str): The URL of the page to parse.
         auth_input (str): The path to a cookie file or a raw cookie string.
         skip_strict (bool): Skip validation for strict anti-bot domains.
+        check_links (bool): Check hyperlinks (<a> tags).
+        check_src (bool): Check resources (images, scripts, styles, etc).
         
     Returns:
         list: A list of tuples containing (link, status_code).
@@ -93,7 +110,7 @@ def validate_links(page_url, auth_input=None, skip_strict=False):
         print(f"Failed to load the page: {page_url}")
         return results
 
-    parser = LinkParser(page_url)
+    parser = LinkParser(page_url, check_links=check_links, check_src=check_src)
     parser.feed(html_content)
 
     def check_link(link):

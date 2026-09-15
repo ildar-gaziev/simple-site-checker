@@ -45,6 +45,20 @@ If you're testing pages with many social media links (LinkedIn, Twitter/X, Insta
 ssc -links -url https://www.example.com -skip-strict
 ```
 
+### Check resources (images, scripts, styles)
+
+You can check if loaded resources (like images, scripts, stylesheets, audio, and video) are available using the `-src` flag:
+
+```bash
+ssc -src -url https://www.example.com
+```
+
+*Note: You can combine `-links` and `-src` to check everything on the page.*
+
+```bash
+ssc -links -src -url https://www.example.com
+```
+
 ### Optional: set cookies
 
 You can pass a cookie file:
